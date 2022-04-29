@@ -1,4 +1,6 @@
-public enum Day {
+package model;
+
+public enum WeekDay {
     MONDAY,
     TUESDAY,
     WEDNESDAY,

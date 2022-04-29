@@ -1,15 +1,22 @@
-public class Flight {
+package model;
+
+import org.jetbrains.annotations.NotNull;
+import java.io.Serializable;
+
+public class Flight implements Serializable {
+    private static final int serialVersionUID = 1;
+
     private String destination;
     private String flightId;
     private AircraftType aircraftType;
     private Time departureTime;
-    private Day departureDay;
+    private WeekDay departureDay;
     private String aircraftId;
 
-    Flight() {
+    public Flight() {
         departureTime = new Time();
     }
-    Flight(Flight other) {
+    public Flight(@NotNull Flight other) {
         this.destination = other.destination;
         this.flightId = other.flightId;
         this.aircraftType = other.aircraftType;
@@ -17,7 +24,7 @@ public class Flight {
         this.departureDay = other.departureDay;
         this.aircraftId = other.aircraftId;
     }
-    Flight(String destination, AircraftType aircraftType, Time departureTime, Day departureDay) {
+    public Flight(String destination, AircraftType aircraftType, Time departureTime, WeekDay departureDay) {
         this.destination = destination;
         flightId = generateId();
         this.aircraftType = aircraftType;
@@ -38,7 +45,7 @@ public class Flight {
     public Time getDepartureTime() {
         return departureTime;
     }
-    public Day getDepartureDay() {
+    public WeekDay getDepartureDay() {
         return departureDay;
     }
     public String getAircraftId() {
@@ -53,15 +60,14 @@ public class Flight {
                 "Aircraft ID:\t" + aircraftId + "\n" +
                 "Aircraft type:\t" + aircraftType + "\n";
     }
-
-    public static int randint(int from, int to) {
+    public static int randInt(int from, int to) {
         return (int) (Math.random()*(to - from+1) + from);
     }
     public static String generateId() {
         StringBuilder id = new StringBuilder();
         int digits = 6;
         for (int i = 0; i < digits; i++)
-            id.append(randint(0, 9));
+            id.append(randInt(0, 9));
         return id.toString();
     }
 }
