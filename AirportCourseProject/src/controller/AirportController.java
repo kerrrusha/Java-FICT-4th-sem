@@ -1,171 +1,149 @@
 package controller;
 
-import dataManager.ExampleDataList;
-import model.AirportModel;
-import model.Flight;
-import model.Time;
-import model.WeekDay;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Level;
+import model.*;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.log4j.xml.DOMConfigurator;
 import view.AirportView;
 import view.UserInputManager;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AirportController {
-    private class Validator {
-        public boolean checkIntBeth(int number, int from, int to) {
-            return (from <= number && number <= to);
-        }
-        public boolean checkDestination(String destination) throws IOException, ClassNotFoundException {
-            return model.getFlights().stream().map(Flight::getDestination).distinct().toList().contains(destination);
-        }
-        @SuppressWarnings("all")
-        public boolean checkDepartureDay(WeekDay day) throws IOException, ClassNotFoundException {
-            return model.getFlights().stream().map(Flight::getDepartureDay).distinct().toList().contains(day);
-        }
-        public boolean checkTime(Time time) {
-            return time.in24HoursFormat();
-        }
-    }
-
     private AirportModel model;
     private AirportView view;
     private final UserInputManager inputManager;
-    private final Validator validator;
 
     public static Logger logger = Logger.getLogger(AirportController.class);
 
-    public AirportController() {
-        FileAppender appender = null;
+    public AirportController() throws IOException {
+        DOMConfigurator.configure("src/log4j.xml");
+        logger.info("logger is ready");
+
         try {
-            appender = new FileAppender(new PatternLayout("%d{HH:mm:ss,SSS}\t%-5p: %m%n"), "log.txt");
+            model = new AirportModel();
+            //model.addFlights(ExampleDataList.getData());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.fatal("creating AirportModel", e);
             System.exit(1);
         }
 
-        logger.addAppender(appender);
-        logger.setLevel(Level.DEBUG);
-        logger.info("logger is ready");
-
-        String dataFileAddress = ".//data.ser";
-
-        try {
-            model = new AirportModel(dataFileAddress);
-            //model.addFlights(ExampleDataList.getData());
-        } catch (IOException e) {
-            logger.error("creating AirportModel", e);
-        }
-        logger.info("AirportModel initialised");
-
-//        logger.info("trying to load all flights...");
-//        var flights = model.getFlights();
-//        logger.debug("After initialising, AirportModel contains:\n" + flights);
-
         view = new AirportView();
-        logger.info("AirportView initialised");
 
         inputManager = new UserInputManager();
-        logger.info("UserInputManager initialised");
-
-        validator = new Validator();
-        logger.info("Validator initialised");
 
         logger.info("AirportController successfully initialised");
     }
 
-    public void run() throws IOException, ClassNotFoundException {
-        logger.info("running AirportController");
-        menu();
-    }
-    public void menu() throws IOException, ClassNotFoundException {
-        logger.info("opening Airport menu");
-
+    public void run() {
         while (true) {
             AirportView.printMessage(AirportView.MENU_TITLE);
             AirportView.printMessages(AirportView.MENU_ITEMS);
 
-            logger.info("menu point input");
-            int from = 1;
-            int to = AirportView.MENU_ITEMS.length;
-            int answer = inputManager.inputIntBeth(from, to);
-            if (!validator.checkIntBeth(answer, from, to)) {
-                AirportView.printMessage(AirportView.INT_NOT_IN_BOUNDS);
+            int chosenMenuPoint = inputChosenMenuPoint();
+
+            try {
+                switch (chosenMenuPoint) {
+                    case 1 -> AirportView.printMessage(String.valueOf(model.getFlights()));
+                    case 2 -> {
+                        processByDestinationSelecting();
+                    }
+                    case 3 -> {
+                        processByDepartureDaySelecting();
+                    }
+                    case 4 -> {
+                        processByDepartureDayTimeSelecting();
+                    }
+                    case 5 -> {
+                        logger.info("user quits the program");
+                        return;
+                    }
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+                System.exit(-1);
+            }
+        }
+    }
+
+    private int inputChosenMenuPoint() {
+        int from = 1;
+        int to = AirportView.MENU_ITEMS.length;
+
+        String answer;
+        int chosenMenuPoint;
+        while(true) {
+            answer = inputManager.inputWithScanner(AirportView.INPUT_MENU_ITEM);
+            if (!TypeCheckerUtility.isInt(answer)) {
+                AirportView.printMessage(AirportView.WRONG_INT_INPUT);
                 continue;
             }
 
-            switch (answer) {
-                case 1 -> AirportView.printMessage(String.valueOf(model.getFlights()));
-                case 2 -> {
-                    logger.info("destination input");
-                    String destination = inputManager.inputString(AirportView.INPUT_DESTINATION);
-                    if (!validator.checkDestination(destination)) {
-                        AirportView.printMessage(AirportView.NOT_EXISTING_DESTINATION);
-                        continue;
-                    }
-
-                    logger.info("filtering flights by destination:\t" + destination);
-                    var selectByDestination =
-                            AirportModel.FilterUtility.selectByDestination(model.getFlights(), destination);
-                    AirportView.printMessage(AirportView.SEARCH_RESULT);
-                    if (selectByDestination.size() == 0)
-                        AirportView.printMessage(AirportView.NOTHINGS_FOUND);
-                    else
-                        AirportView.printFlightList(selectByDestination);
-                }
-                case 3 -> {
-                    logger.info("WeekDay input");
-                    WeekDay departureDay = inputManager.inputDay(AirportView.INPUT_DEPARTURE_DAY);
-                    if (!validator.checkDepartureDay(departureDay)) {
-                        AirportView.printMessage(AirportView.NOT_EXISTING_DEPARTURE_DAY);
-                        continue;
-                    }
-
-                    logger.info("filtering flights by departure day:\t" + departureDay);
-                    var selectByDepartureDay =
-                            AirportModel.FilterUtility.selectByDepartureDay(model.getFlights(), departureDay);
-
-                    AirportView.printMessage(AirportView.SEARCH_RESULT);
-                    if (selectByDepartureDay.size() == 0)
-                        AirportView.printMessage(AirportView.NOTHINGS_FOUND);
-                    else
-                        AirportView.printFlightList(selectByDepartureDay);
-                }
-                case 4 -> {
-                    logger.info("WeekDay input");
-                    WeekDay day = inputManager.inputDay(AirportView.INPUT_DEPARTURE_DAY);
-                    if (!validator.checkDepartureDay(day)) {
-                        AirportView.printMessage(AirportView.NOT_EXISTING_DEPARTURE_DAY);
-                        continue;
-                    }
-                    logger.info("Time input");
-                    Time timeFrom = inputManager.inputTime(AirportView.INPUT_DEPARTURE_TIME);
-                    if (!validator.checkTime(timeFrom)) {
-                        AirportView.printMessage(AirportView.WRONG_TIME_INPUT);
-                        continue;
-                    }
-
-                    logger.info("filtering flights by departure day:\t" + day);
-                    var selectByDepartureDay =
-                            AirportModel.FilterUtility.selectByDepartureDay(model.getFlights(), day);
-                    logger.info("filtering flights by time:\t" + timeFrom);
-                    var selectByDepartureDayAndTime =
-                            AirportModel.FilterUtility.selectAfterTime(selectByDepartureDay, timeFrom);
-
-                    AirportView.printMessage(AirportView.SEARCH_RESULT);
-                    if (selectByDepartureDayAndTime.size() == 0)
-                        AirportView.printMessage(AirportView.NOTHINGS_FOUND);
-                    else
-                        AirportView.printFlightList(selectByDepartureDayAndTime);
-                }
-                case 5 -> {
-                    logger.info("quit");
-                    return;
-                }
+            chosenMenuPoint = Integer.parseInt(answer);
+            if (chosenMenuPoint < from || chosenMenuPoint > to) {
+                AirportView.printMessage(AirportView.INT_INPUT_OUT_OF_BOUNDS);
+                continue;
             }
+            break;
         }
+        return chosenMenuPoint;
+    }
+    private void processByDestinationSelecting() throws IOException, ClassNotFoundException {
+        String destination = inputManager.inputWithScanner(AirportView.INPUT_DESTINATION);
+
+        ArrayList<Flight> selectByDestination =
+                (ArrayList<Flight>) model.selectBy(FilterParameter.DESTINATION, destination);
+        AirportView.printMessage(AirportView.SEARCH_RESULT);
+        if (selectByDestination.size() == 0)
+            AirportView.printMessage(AirportView.NOTHINGS_FOUND);
+        else
+            AirportView.printFlightList(selectByDestination);
+    }
+    private void processByDepartureDaySelecting() throws IOException, ClassNotFoundException {
+        String answer = inputManager.inputWithScanner(AirportView.INPUT_DEPARTURE_DAY);
+        if (!TypeCheckerUtility.isWeekDay(answer)) {
+            AirportView.printMessage(AirportView.WRONG_DAY_INPUT);
+            return;
+        }
+        WeekDay departureDay = WeekDay.valueOf(answer);
+
+        ArrayList<Flight> selectByDepartureDay =
+                (ArrayList<Flight>) model.selectBy(FilterParameter.WEEKDAY, departureDay);
+
+        AirportView.printMessage(AirportView.SEARCH_RESULT);
+        if (selectByDepartureDay.size() == 0)
+            AirportView.printMessage(AirportView.NOTHINGS_FOUND);
+        else
+            AirportView.printFlightList(selectByDepartureDay);
+    }
+    private void processByDepartureDayTimeSelecting() throws IOException, ClassNotFoundException {
+        String answer = inputManager.inputWithScanner(AirportView.INPUT_DEPARTURE_DAY);
+        if (!TypeCheckerUtility.isWeekDay(answer)) {
+            AirportView.printMessage(AirportView.WRONG_DAY_INPUT);
+            return;
+        }
+        WeekDay departureDay = WeekDay.valueOf(answer);
+
+        answer = inputManager.inputWithScanner(AirportView.INPUT_DEPARTURE_TIME);
+        if (!TypeCheckerUtility.isTime(answer)) {
+            AirportView.printMessage(AirportView.WRONG_TIME_INPUT);
+            return;
+        }
+        Time departureTime = Time.parseTime(answer);
+
+        ArrayList<Flight> selectByDepartureDay =
+                (ArrayList<Flight>) model.selectBy(FilterParameter.WEEKDAY, departureDay);
+        ArrayList<Flight> selectByDepartureTime =
+                (ArrayList<Flight>) model.selectBy(FilterParameter.TIME, departureTime);
+
+        List<Flight> common = AirportModel.common(selectByDepartureDay, selectByDepartureTime);
+
+        AirportView.printMessage(AirportView.SEARCH_RESULT);
+        if (common.size() == 0)
+            AirportView.printMessage(AirportView.NOTHINGS_FOUND);
+        else
+            AirportView.printFlightList((ArrayList<Flight>) common);
     }
 }

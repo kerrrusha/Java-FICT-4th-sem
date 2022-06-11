@@ -1,23 +1,15 @@
-package model;
-
-import org.jetbrains.annotations.NotNull;
-import java.io.Serializable;
-import java.util.Objects;
-
-public class Flight implements Serializable {
-    private static final int serialVersionUID = 1;
-
+public class Flight {
     private String destination;
     private String flightId;
     private AircraftType aircraftType;
     private Time departureTime;
-    private WeekDay departureDay;
+    private Day departureDay;
     private String aircraftId;
 
-    public Flight() {
+    Flight() {
         departureTime = new Time();
     }
-    public Flight(@NotNull Flight other) {
+    Flight(Flight other) {
         this.destination = other.destination;
         this.flightId = other.flightId;
         this.aircraftType = other.aircraftType;
@@ -25,7 +17,7 @@ public class Flight implements Serializable {
         this.departureDay = other.departureDay;
         this.aircraftId = other.aircraftId;
     }
-    public Flight(String destination, AircraftType aircraftType, Time departureTime, WeekDay departureDay) {
+    Flight(String destination, AircraftType aircraftType, Time departureTime, Day departureDay) {
         this.destination = destination;
         flightId = generateId();
         this.aircraftType = aircraftType;
@@ -46,7 +38,7 @@ public class Flight implements Serializable {
     public Time getDepartureTime() {
         return departureTime;
     }
-    public WeekDay getDepartureDay() {
+    public Day getDepartureDay() {
         return departureDay;
     }
     public String getAircraftId() {
@@ -61,17 +53,15 @@ public class Flight implements Serializable {
                 "Aircraft ID:\t" + aircraftId + "\n" +
                 "Aircraft type:\t" + aircraftType + "\n";
     }
-    public boolean isEqual(Flight other) {
-        return ( Objects.equals(this.flightId, other.flightId) && Objects.equals(this.aircraftId, other.aircraftId) );
-    }
-    public static int randInt(int from, int to) {
+
+    public static int randint(int from, int to) {
         return (int) (Math.random()*(to - from+1) + from);
     }
     public static String generateId() {
         StringBuilder id = new StringBuilder();
         int digits = 6;
         for (int i = 0; i < digits; i++)
-            id.append(randInt(0, 9));
+            id.append(randint(0, 9));
         return id.toString();
     }
 }

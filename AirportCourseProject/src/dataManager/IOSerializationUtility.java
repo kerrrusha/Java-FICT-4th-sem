@@ -1,7 +1,5 @@
 package dataManager;
 
-import controller.AirportController;
-
 import java.io.*;
 
 public class IOSerializationUtility {

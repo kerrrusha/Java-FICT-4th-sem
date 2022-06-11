@@ -1,4 +1,4 @@
-package view;
+package controller;
 
 import model.Time;
 import model.WeekDay;
@@ -8,7 +8,7 @@ public class TypeCheckerUtility {
         if (input == null)
             return false;
         try {
-            int i = Integer.parseInt(input);
+            Integer.parseInt(input);
         } catch (NumberFormatException nfe) {
             return false;
         }
@@ -18,7 +18,7 @@ public class TypeCheckerUtility {
         if (input == null)
             return false;
         try {
-            WeekDay w = WeekDay.valueOf(input);
+            WeekDay.valueOf(input);
         } catch (IllegalArgumentException iae) {
             return false;
         }
@@ -28,7 +28,7 @@ public class TypeCheckerUtility {
         if (input == null)
             return false;
         try {
-            Time t = Time.parseTime(input);
+            Time.parseTime(input);
         } catch (Exception e) {
             return false;
         }
