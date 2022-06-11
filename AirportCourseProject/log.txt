@@ -1007,3 +1007,6 @@ Aircraft type:	SHORT_HAUL
 01:11:01,856	INFO : logger is ready
 01:11:01,875	INFO : AirportController successfully initialised
 01:11:28,556	INFO : user quits the program
+01:20:25,259	INFO : logger is ready
+01:20:25,277	INFO : AirportController successfully initialised
+01:21:24,446	INFO : user quits the program
