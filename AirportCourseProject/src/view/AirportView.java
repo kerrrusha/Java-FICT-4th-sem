@@ -26,15 +26,15 @@ public class AirportView {
     public static final String NOTHINGS_FOUND = "Sorry, nothing was found by your query.";
     public static final String NOT_EXISTING_DESTINATION = "There are no such destination!";
     public static final String NOT_EXISTING_DEPARTURE_DAY = "There are no such departure day!";
-    public static void printMessage(String message) {
+    public  void printMessage(String message) {
         System.out.println(message);
     }
-    public static void printMessages(String[] messages) {
+    public  void printMessages(String[] messages) {
         for(var message : messages) {
             System.out.println(message);
         }
     }
-    public static void printFlightList(ArrayList<Flight> flights) {
+    public  void printFlightList(ArrayList<Flight> flights) {
         for(var flight : flights) {
             System.out.println(flight);
         }

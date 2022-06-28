@@ -12,12 +12,12 @@ import java.util.List;
 
 public class AirportController {
     private AirportModel model;
-    private AirportView view;
+    private final AirportView view;
     private final UserInputManager inputManager;
 
     public static Logger logger = Logger.getLogger(AirportController.class);
 
-    public AirportController() throws IOException {
+    public AirportController() {
         DOMConfigurator.configure("src/log4j.xml");
         logger.info("logger is ready");
 
@@ -31,21 +31,21 @@ public class AirportController {
 
         view = new AirportView();
 
-        inputManager = new UserInputManager();
+        inputManager = new UserInputManager(view);
 
         logger.info("AirportController successfully initialised");
     }
 
     public void run() {
         while (true) {
-            AirportView.printMessage(AirportView.MENU_TITLE);
-            AirportView.printMessages(AirportView.MENU_ITEMS);
+            view.printMessage(AirportView.MENU_TITLE);
+            view.printMessages(AirportView.MENU_ITEMS);
 
             int chosenMenuPoint = inputChosenMenuPoint();
 
             try {
                 switch (chosenMenuPoint) {
-                    case 1 -> AirportView.printMessage(String.valueOf(model.getFlights()));
+                    case 1 -> view.printMessage(String.valueOf(model.getFlights()));
                     case 2 -> {
                         processByDestinationSelecting();
                     }
@@ -61,8 +61,16 @@ public class AirportController {
                     }
                 }
             }
+            catch (ClassNotFoundException e) {
+                logger.fatal("exception - classNotFoundException:\n", e);
+                System.exit(-1);
+            }
+            catch (IOException e) {
+                logger.fatal("exception - IOException:\n", e);
+                System.exit(-1);
+            }
             catch (Exception e) {
-                e.printStackTrace();
+                logger.fatal("exception - Exception:\n", e);
                 System.exit(-1);
             }
         }
@@ -77,13 +85,13 @@ public class AirportController {
         while(true) {
             answer = inputManager.inputWithScanner(AirportView.INPUT_MENU_ITEM);
             if (!TypeCheckerUtility.isInt(answer)) {
-                AirportView.printMessage(AirportView.WRONG_INT_INPUT);
+                view.printMessage(AirportView.WRONG_INT_INPUT);
                 continue;
             }
 
             chosenMenuPoint = Integer.parseInt(answer);
             if (chosenMenuPoint < from || chosenMenuPoint > to) {
-                AirportView.printMessage(AirportView.INT_INPUT_OUT_OF_BOUNDS);
+                view.printMessage(AirportView.INT_INPUT_OUT_OF_BOUNDS);
                 continue;
             }
             break;
@@ -95,16 +103,16 @@ public class AirportController {
 
         ArrayList<Flight> selectByDestination =
                 (ArrayList<Flight>) model.selectBy(FilterParameter.DESTINATION, destination);
-        AirportView.printMessage(AirportView.SEARCH_RESULT);
+        view.printMessage(AirportView.SEARCH_RESULT);
         if (selectByDestination.size() == 0)
-            AirportView.printMessage(AirportView.NOTHINGS_FOUND);
+            view.printMessage(AirportView.NOTHINGS_FOUND);
         else
-            AirportView.printFlightList(selectByDestination);
+            view.printFlightList(selectByDestination);
     }
     private void processByDepartureDaySelecting() throws IOException, ClassNotFoundException {
         String answer = inputManager.inputWithScanner(AirportView.INPUT_DEPARTURE_DAY);
         if (!TypeCheckerUtility.isWeekDay(answer)) {
-            AirportView.printMessage(AirportView.WRONG_DAY_INPUT);
+            view.printMessage(AirportView.WRONG_DAY_INPUT);
             return;
         }
         WeekDay departureDay = WeekDay.valueOf(answer);
@@ -112,23 +120,23 @@ public class AirportController {
         ArrayList<Flight> selectByDepartureDay =
                 (ArrayList<Flight>) model.selectBy(FilterParameter.WEEKDAY, departureDay);
 
-        AirportView.printMessage(AirportView.SEARCH_RESULT);
+        view.printMessage(AirportView.SEARCH_RESULT);
         if (selectByDepartureDay.size() == 0)
-            AirportView.printMessage(AirportView.NOTHINGS_FOUND);
+            view.printMessage(AirportView.NOTHINGS_FOUND);
         else
-            AirportView.printFlightList(selectByDepartureDay);
+            view.printFlightList(selectByDepartureDay);
     }
     private void processByDepartureDayTimeSelecting() throws IOException, ClassNotFoundException {
         String answer = inputManager.inputWithScanner(AirportView.INPUT_DEPARTURE_DAY);
         if (!TypeCheckerUtility.isWeekDay(answer)) {
-            AirportView.printMessage(AirportView.WRONG_DAY_INPUT);
+            view.printMessage(AirportView.WRONG_DAY_INPUT);
             return;
         }
         WeekDay departureDay = WeekDay.valueOf(answer);
 
         answer = inputManager.inputWithScanner(AirportView.INPUT_DEPARTURE_TIME);
         if (!TypeCheckerUtility.isTime(answer)) {
-            AirportView.printMessage(AirportView.WRONG_TIME_INPUT);
+            view.printMessage(AirportView.WRONG_TIME_INPUT);
             return;
         }
         Time departureTime = Time.parseTime(answer);
@@ -140,10 +148,10 @@ public class AirportController {
 
         List<Flight> common = AirportModel.common(selectByDepartureDay, selectByDepartureTime);
 
-        AirportView.printMessage(AirportView.SEARCH_RESULT);
+        view.printMessage(AirportView.SEARCH_RESULT);
         if (common.size() == 0)
-            AirportView.printMessage(AirportView.NOTHINGS_FOUND);
+            view.printMessage(AirportView.NOTHINGS_FOUND);
         else
-            AirportView.printFlightList((ArrayList<Flight>) common);
+            view.printFlightList((ArrayList<Flight>) common);
     }
 }

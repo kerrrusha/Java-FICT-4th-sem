@@ -3,7 +3,7 @@ package dataManager;
 import java.io.IOException;
 import java.util.List;
 
-public interface IDataOperable <T> {
+public interface DataOperable<T> {
     List<T> readAll() throws IOException, ClassNotFoundException;
 
     void addOne(T object) throws IOException, ClassNotFoundException;
